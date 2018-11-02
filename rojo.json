@@ -9,6 +9,6 @@
 		"Roact": {
 			"path": "Modules/Roact/lib",
 			"target": "Workspace.JumpToAction.Libs.Roact"
-		},
+		}
 	}
 }
