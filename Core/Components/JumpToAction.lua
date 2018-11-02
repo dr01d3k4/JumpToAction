@@ -11,10 +11,11 @@ local HEIGHT = 30
 function JumpToAction:render()
 	local props = self.props
 
+	-- Use this if we want clicking outside the list to close it
+	--[[
 	local onClose = props.onClose
 
-	-- Use this if we want clicking outside the list to close it
-	--[[return Roact.createElement("TextButton", {
+	return Roact.createElement("TextButton", {
 		AutoButtonColor = false,
 		Text = "",
 		BackgroundTransparency = 1,

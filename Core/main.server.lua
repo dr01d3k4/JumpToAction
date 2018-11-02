@@ -8,6 +8,8 @@ local Roact = require(Plugin.Libs.Roact)
 
 local JumpToAction = require(Plugin.Core.Components.JumpToAction)
 
+local DataSource = require(Plugin.Core.DataSource)
+
 local CoreGui = game:GetService("CoreGui")
 
 local GUI_NAME = "JumpToActionGui"
@@ -15,9 +17,10 @@ local GUI_NAME = "JumpToActionGui"
 local function main()
 	local gui
 	local handle
+	local dataSource
 
 	-- Maybe unmount the component if it exists
-	local function onClose()
+	local function onCloseGui()
 		if handle then
 			Roact.unmount(handle)
 			handle = nil
@@ -25,6 +28,15 @@ local function main()
 
 		if gui then
 			gui.Enabled = false
+		end
+	end
+
+	local function onClosePlugin()
+		onCloseGui()
+
+		if dataSource then
+			dataSource:destroy()
+			dataSource = nil
 		end
 	end
 
@@ -44,21 +56,23 @@ local function main()
 	-- When the gui gets destroyed, close the plugin
 	gui.AncestryChanged:connect(function(child, parent)
 		if child == gui and parent == nil then
-			onClose()
+			onClosePlugin()
 		end
 	end)
 
 	gui.Parent = CoreGui
+
+	dataSource = DataSource.new()
 
 	-- Start plugin on key press
 	local action = plugin:CreatePluginAction("JumpToAction_Open", "Open jump to action", "Open the jump to action menu")
 	action.Triggered:connect(function()
 		-- Toggle gui open
 		if handle then
-			onClose()
+			onCloseGui()
 		else
 			local component = Roact.createElement(JumpToAction, {
-				onClose = onClose,
+				dataSource = dataSource,
 			})
 			gui.Enabled = true
 			handle = Roact.mount(component, gui, "JumpToAction")
