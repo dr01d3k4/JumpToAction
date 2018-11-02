@@ -19,18 +19,19 @@ local function main()
 	local handle
 	local dataSource
 
-	-- Maybe unmount the component if it exists
+	-- Gui is closing, unmount handles etc.
 	local function onCloseGui()
 		if handle then
 			Roact.unmount(handle)
 			handle = nil
 		end
 
-		if gui then
+		if gui and gui.Enabled then
 			gui.Enabled = false
 		end
 	end
 
+	-- Plugin is closing
 	local function onClosePlugin()
 		onCloseGui()
 
@@ -60,6 +61,19 @@ local function main()
 		end
 	end)
 
+	-- Listen for enabled changed on gui to turn gui on
+	gui:GetPropertyChangedSignal("Enabled"):connect(function()
+		if gui.Enabled then
+			local component = Roact.createElement(JumpToAction, {
+				dataSource = dataSource,
+			})
+			gui.Enabled = true
+			handle = Roact.mount(component, gui, "JumpToAction")
+		else
+			onCloseGui()
+		end
+	end)
+
 	gui.Parent = CoreGui
 
 	dataSource = DataSource.new()
@@ -67,16 +81,11 @@ local function main()
 	-- Start plugin on key press
 	local action = plugin:CreatePluginAction("JumpToAction_Open", "Open jump to action", "Open the jump to action menu")
 	action.Triggered:connect(function()
-		-- Toggle gui open
-		if handle then
-			onCloseGui()
-		else
-			local component = Roact.createElement(JumpToAction, {
-				dataSource = dataSource,
-			})
-			gui.Enabled = true
-			handle = Roact.mount(component, gui, "JumpToAction")
+		-- Toggle gui enabled to open/close list
+		if not gui then
+			return
 		end
+		gui.Enabled = not gui.Enabled
 	end)
 end
 
